@@ -222,9 +222,11 @@ async fn main() -> Result<()> {
         description: args.description.as_deref(),
         stories: release_content.stories,
         epics: release_content.epics,
-        unparsed_commits: include_unparsed_commits
-            .then_some(release_content.unparsed_commits)
-            .unwrap_or_default(),
+        unparsed_commits: if include_unparsed_commits {
+            release_content.unparsed_commits
+        } else {
+            Default::default()
+        },
         next_heads,
     };
     template.render_to_file(&release, &args.output_file)?;
