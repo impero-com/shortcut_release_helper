@@ -52,6 +52,7 @@ use ansi_term::{
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use git::{Repository, UnreleasedCommits};
+use governor::Quota;
 use itertools::Itertools;
 use serde::Serialize;
 use shortcut::{ReleaseContent, StoryId};
@@ -205,7 +206,8 @@ async fn main() -> Result<()> {
     let exclude_story_ids = HashSet::from_iter(args.exclude_story_id.iter().copied());
     let parsed_commits = parse_commits(repo_names_and_commits, &exclude_story_ids)?;
     debug!("Got result {:?}", parsed_commits);
-    let shortcut_client = ShortcutClient::new(&api_key);
+    let shortcut_api_quota = Quota::per_minute(config.shortcut_api_limit_per_minute);
+    let shortcut_client = ShortcutClient::new(&api_key, shortcut_api_quota);
     let release_content = shortcut_client
         .get_release(
             parsed_commits,

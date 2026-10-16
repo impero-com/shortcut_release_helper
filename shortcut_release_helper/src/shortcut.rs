@@ -1,5 +1,4 @@
 use std::collections::HashSet;
-use std::num::NonZeroU32;
 use std::{collections::HashMap, str::FromStr};
 
 use anyhow::{anyhow, Result};
@@ -114,15 +113,13 @@ pub struct ShortcutClient {
 }
 
 impl ShortcutClient {
-    pub fn new(api_key: &ShortcutApiKey) -> Self {
+    pub fn new(api_key: &ShortcutApiKey, shortcut_api_quota: Quota) -> Self {
         let mut configuration = shortcut_cfg::Configuration::new();
         configuration.api_key = Some(shortcut_cfg::ApiKey {
             key: api_key.to_string(),
             prefix: None,
         });
-        let shortcut_api_limit: std::num::NonZeroU32 =
-            NonZeroU32::new(200u32).expect("Should be non-zero");
-        let rate_limiter = RateLimiter::direct(Quota::per_minute(shortcut_api_limit));
+        let rate_limiter = RateLimiter::direct(shortcut_api_quota);
         Self {
             configuration,
             rate_limiter,
